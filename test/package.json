@@ -4,10 +4,10 @@
   "version": "0.1.2beta",
   "main": "index.html",
   "window": {
-    "toolbar": false,
+    "toolbar": true,
     "width": 660,
     "height": 500,
-    "fullscreen": true
+    "fullscreen": false
   },
   "dependencies":
   {

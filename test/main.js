@@ -10,29 +10,33 @@ $(document).ready(function() {
     var folder = new folder_view.Folder($('#files'));
     var addressbar = new abar.AddressBar($('#addressbar'));
     var watcher;
+    var interval = null;
+    var time = 100;
 
     var collection = [];
     var index = 0;
 
-  folder.open(process.cwd());
-  addressbar.set(process.cwd());
+    folder.open(process.cwd());
+    addressbar.set(process.cwd());
 
-  folder.on('navigate', function(dir, mime) {
-    if (mime.type == 'folder') {
-      addressbar.enter(mime);
-    } else {
-      shell.openItem(mime.path);
-    }
-  });
+    folder.on('navigate', function(dir, mime) {
+	if (mime.type == 'folder') {
+	    addressbar.enter(mime);
+	} else {
+	    shell.openItem(mime.path);
+	}
+    });
 
-  addressbar.on('navigate', function(dir) {
-    folder.open(dir);
-  });
+    addressbar.on('navigate', function(dir) {
+	folder.open(dir);
+    });
 
     var display = function()
     {
-	$('#main').empty();
-	$('#main').append('<img src="' + collection[index] + '"/>');
+	var img = $('<img src="'+ collection[index] +'">').load(function() {
+	    $('#main').empty();
+	    $(this).appendTo('#main');
+	});
     }
 
 
@@ -40,10 +44,17 @@ $(document).ready(function() {
     {
 	if (path && collection.indexOf(path) < 0)
 	{
-	    console.log("lol", path);
 	    collection.push(path);
 	    index = collection.length - 1;
-	    display();
+	    if (interval)
+	    {
+		clearInterval(interval);
+		interval = null;
+		display();
+		setTimeout(function(){
+		    interval = setInterval(function(){refresh()}, time);
+		}, time)
+	    }
 	}
     }
 
@@ -57,18 +68,16 @@ $(document).ready(function() {
 	display();
     }
 
-  folder.on('rightclick', function(dir, mime) {
-      setInterval(function(){refresh()}, 1000);
-    $('#main').empty();
-    watcher = chokidar.watch(dir + "/", {ignored: /^\./, persistent: true});
-      watcher.on("add", function(path){
-	  var re = /(?:\.([^.]+))?$/;
-	  if (re.exec(path)[1] === "jpg")
-	  {
-	      addToCollection(path);
-	      console.log(re.exec(path)[1]);
-	  }
-      });
-  });
-
+    folder.on('rightclick', function(dir, mime) {
+	interval = setInterval(function(){refresh()}, time);
+	$('#main').empty();
+	watcher = chokidar.watch(dir + "/", {ignored: /^\./, persistent: true});
+	watcher.on("add", function(path){
+	    var re = /(?:\.([^.]+))?$/;
+	    if (re.exec(path)[1] === "jpg")
+	    {
+		addToCollection(path);
+	    }
+	});
+    });
 });

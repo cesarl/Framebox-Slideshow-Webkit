@@ -44,3 +44,24 @@ body {
 .file.focus .icon {
   -webkit-filter: invert(20%);
 }
+
+#main
+{
+    margin: 0px;
+    padding: 0px;
+}
+
+.full-img
+{
+    width:100%;
+    height:auto;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+#main, .full-img {
+    min-height: 100%; 
+}
