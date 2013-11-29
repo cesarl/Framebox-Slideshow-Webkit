@@ -3,6 +3,7 @@ windows/
 mac/
 samples/
 linux/
+*.jpg
 
 
 #################
