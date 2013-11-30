@@ -65,7 +65,7 @@ $(document).ready(function() {
 	    interval = setInterval(function(){refresh()}, time);
 	    
 	    $(".folder-explorer").hide();
-	    watcher = chokidar.watch(dir + "/", {persistent: true, usePolling: true, interval: 1, binaryInterval: 1});
+	    watcher = chokidar.watch(dir + "/", {persistent: true, usePolling: true});
 	    watcher.on("add", function(path){
 	    	var re = /(?:\.([^.]+))?$/;
 	    	if (re.exec(path)[1] === "jpg")
