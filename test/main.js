@@ -5,13 +5,14 @@ var folder_view = require('folder_view');
 var path = require('path');
 var shell = require('nw.gui').Shell;
 var chokidar = require('chokidar');
+var win = require('nw.gui').Window.get();
 
 $(document).ready(function() {
     var folder = new folder_view.Folder($('#files'));
     var addressbar = new abar.AddressBar($('#addressbar'));
-    var watcher;
+    var watcher = null;
     var interval = null;
-    var time = 100;
+    var time = 3000;
 
     var collection = [];
     var index = 0;
@@ -31,11 +32,55 @@ $(document).ready(function() {
 	folder.open(dir);
     });
 
+
+    addEventListener("keydown", function(e){
+	if (e.keyCode === 83)
+	{
+	    launchFileExplorer();
+	}
+	if (e.keyCode === 70)
+	{
+	    win.toggleFullscreen();
+	}
+    });
+
+    var launchFileExplorer = function()
+    {
+	$(".folder-explorer").show();
+	$('.image-viewer').empty();
+	collection = [];
+	index = 0;
+	if (interval)
+	{
+	    clearInterval(interval);
+	    interval = null;
+	}
+	if (watcher)
+	{
+	    watcher.stop();
+	    watcher = null;
+	}
+	
+	folder.on('rightclick', function(dir, mime) {
+	    interval = setInterval(function(){refresh()}, time);
+	    
+	    $(".folder-explorer").hide();
+	    watcher = chokidar.watch(dir + "/", {ignored: /^\./, persistent: true});
+	    watcher.on("add", function(path){
+	    	var re = /(?:\.([^.]+))?$/;
+	    	if (re.exec(path)[1] === "jpg")
+	    	{
+	    	    addToCollection(path);
+	    	}
+	    });
+	});	
+    }
+
     var display = function()
     {
 	var img = $('<img src="'+ collection[index] +'">').load(function() {
-	    $('#main').empty();
-	    $(this).appendTo('#main');
+	    $('.image-viewer').empty();
+	    $(this).appendTo('.image-viewer');
 	});
     }
 
@@ -63,21 +108,11 @@ $(document).ready(function() {
 	++index;
 	if (index >= collection.length)
 	    index = 0;
-	if (collection.length < 0)
+	if (collection.length <= 0)
 	    return;
 	display();
     }
 
-    folder.on('rightclick', function(dir, mime) {
-	interval = setInterval(function(){refresh()}, time);
-	$('#main').empty();
-	watcher = chokidar.watch(dir + "/", {ignored: /^\./, persistent: true});
-	watcher.on("add", function(path){
-	    var re = /(?:\.([^.]+))?$/;
-	    if (re.exec(path)[1] === "jpg")
-	    {
-		addToCollection(path);
-	    }
-	});
-    });
+    launchFileExplorer();
+
 });
