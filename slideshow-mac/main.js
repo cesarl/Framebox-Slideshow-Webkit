@@ -40,7 +40,7 @@ $(document).ready(function() {
 	}
 	if (e.keyCode === 70)
 	{
-	    win.toggleFullscreen();
+	    win.toggleKioskMode();
 	}
     });
 
@@ -57,7 +57,7 @@ $(document).ready(function() {
 	}
 	if (watcher)
 	{
-	    watcher.stop();
+	    watcher.close();
 	    watcher = null;
 	}
 	
@@ -65,12 +65,14 @@ $(document).ready(function() {
 	    interval = setInterval(function(){refresh()}, time);
 	    
 	    $(".folder-explorer").hide();
-	    watcher = chokidar.watch(dir + "/", {ignored: /^\./, persistent: true});
+	    watcher = chokidar.watch(dir + "/", {persistent: true, usePolling: true, interval: 1, binaryInterval: 1});
 	    watcher.on("add", function(path){
 	    	var re = /(?:\.([^.]+))?$/;
 	    	if (re.exec(path)[1] === "jpg")
 	    	{
-	    	    addToCollection(path);
+		    setTimeout(function(){
+			    addToCollection(path);
+			}, 250);
 	    	}
 	    });
 	});	
@@ -81,7 +83,7 @@ $(document).ready(function() {
 	var img = $('<img src="'+ collection[index] +'">').load(function() {
 	    $('.image-viewer').empty();
 	    $(this).appendTo('.image-viewer');
-	});
+	    }).error(function(){console.log("ERROR LOADING IMAGE : DELAY IS TOO SHORT")});
     }
 
 
@@ -96,9 +98,7 @@ $(document).ready(function() {
 		clearInterval(interval);
 		interval = null;
 		display();
-		setTimeout(function(){
-		    interval = setInterval(function(){refresh()}, time);
-		}, time)
+		interval = setInterval(function(){refresh()}, time);
 	    }
 	}
     }
